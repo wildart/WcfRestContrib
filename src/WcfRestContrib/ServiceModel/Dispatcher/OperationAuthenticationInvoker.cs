@@ -12,19 +12,22 @@ namespace WcfRestContrib.ServiceModel.Dispatcher
         private readonly Type _validatorType;
         private readonly bool _requiresTransportLayerSecurity;
         private readonly string _source;
+        private readonly Type _authorizationPolicy;
 
         public OperationAuthenticationInvoker(
             IOperationInvoker invoker,
             IWebAuthenticationHandler handler,
             Type validatorType,
             bool requiresTransportLayerSecurity,
-            string source)
+            string source,
+            Type authorizationPolicy)
         {
             _invoker = invoker.ThrowIfNull();
             _handler = handler.ThrowIfNull();
             _validatorType = validatorType;
             _requiresTransportLayerSecurity = requiresTransportLayerSecurity;
             _source = source;
+            _authorizationPolicy = authorizationPolicy;
         }
 
         public object[] AllocateInputs()
@@ -40,7 +43,8 @@ namespace WcfRestContrib.ServiceModel.Dispatcher
                     _validatorType,
                     OperationContext.Current.ThrowIfNull().HasTransportLayerSecurity(),
                     _requiresTransportLayerSecurity,
-                    _source));
+                    _source), 
+                    _authorizationPolicy);
 
             return _invoker.Invoke(instance, inputs, out outputs);
         }

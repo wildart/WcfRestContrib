@@ -12,21 +12,24 @@ namespace WcfRestContrib.ServiceModel.Dispatcher
         private readonly Type _validatorType;
         private readonly bool _requiresTransportLayerSecurity;
         private readonly string _source;
+        private readonly Type _authorizationPolicy;
 
         public ServiceAuthenticationInspector(
             IWebAuthenticationHandler handler,
             Type validatorType,
             bool requiresTransportLayerSecurity,
-            string source)
+            string source,
+            Type authorizationPolicy)
         {
             _handler = handler;
             _validatorType = validatorType;
             _requiresTransportLayerSecurity = requiresTransportLayerSecurity;
             _source = source;
+            _authorizationPolicy = authorizationPolicy;
         }
 
         public object AfterReceiveRequest(ref Message request, IClientChannel channel, InstanceContext instanceContext)
-        {
+        {            
             OperationContext.Current.ReplacePrimaryIdentity(_handler.Authenticate(
                 WebOperationContext.Current.IncomingRequest,
                 WebOperationContext.Current.OutgoingResponse,
@@ -34,7 +37,8 @@ namespace WcfRestContrib.ServiceModel.Dispatcher
                 _validatorType,
                 OperationContext.Current.HasTransportLayerSecurity(),
                 _requiresTransportLayerSecurity,
-                _source));
+                _source), 
+                _authorizationPolicy);
 
             return null;
         }

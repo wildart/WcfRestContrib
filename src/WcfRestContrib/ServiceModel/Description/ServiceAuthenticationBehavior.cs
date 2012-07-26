@@ -1,10 +1,8 @@
 ﻿using System;
-using System.IdentityModel.Selectors;
 using System.ServiceModel.Dispatcher;
 using System.ServiceModel.Description;
 using System.ServiceModel.Channels;
 using WcfRestContrib.ServiceModel.Dispatcher;
-using WcfRestContrib.DependencyInjection;
 
 namespace WcfRestContrib.ServiceModel.Description
 {
@@ -18,16 +16,25 @@ namespace WcfRestContrib.ServiceModel.Description
 
         public void ApplyDispatchBehavior(ServiceDescription serviceDescription, System.ServiceModel.ServiceHostBase serviceHostBase)
         {
-            var behavior = 
+            var authenticationBehavior = 
                 serviceHostBase.Description.FindBehavior
                         <WebAuthenticationConfigurationBehavior,
                         WebAuthenticationConfigurationAttribute>(b => b.BaseBehavior);
 
-            if (behavior == null)
-                throw new ServiceAuthenticationConfigurationMissingException();
+            if (authenticationBehavior == null)
+                throw new ServiceAuthenticationConfigurationMissingException();            
 
-            var authenticationHandler = behavior.AuthenticationHandler;
-            var usernamePasswordValidator = behavior.UsernamePasswordValidatorType;
+            var authenticationHandler = authenticationBehavior.AuthenticationHandler;
+            var usernamePasswordValidator = authenticationBehavior.UsernamePasswordValidatorType;
+
+            var authorizationBehavior =
+                serviceHostBase.Description.FindBehavior
+                    <WebAuthorizationConfigurationBehavior,
+                    WebAuthorizationConfigurationAttribute>(b => b.BaseBehavior);
+
+            Type authorizationPolicy = null;
+            if (authorizationBehavior != null)
+                authorizationPolicy = authorizationBehavior.AuthorizationPolicyType;
 
             foreach (ChannelDispatcher dispatcher in 
                 serviceHostBase.ChannelDispatchers)
@@ -36,8 +43,9 @@ namespace WcfRestContrib.ServiceModel.Description
                         new ServiceAuthenticationInspector(
                             authenticationHandler,
                             usernamePasswordValidator,
-                            behavior.RequireSecureTransport,
-                            behavior.Source));
+                            authenticationBehavior.RequireSecureTransport,
+                            authenticationBehavior.Source,
+                            authorizationPolicy));
         }
 
         public void Validate(ServiceDescription serviceDescription, System.ServiceModel.ServiceHostBase serviceHostBase) { }
@@ -58,13 +66,23 @@ namespace WcfRestContrib.ServiceModel.Description
             if (behavior == null)
                 throw new ServiceAuthenticationConfigurationMissingException();
 
+            var authorizationBehavior =
+                dispatchRuntime.ChannelDispatcher.Host.Description.FindBehavior
+                        <WebAuthorizationConfigurationBehavior,
+                        WebAuthorizationConfigurationAttribute>(b => b.BaseBehavior);
+
+            Type authorizationPolicy = null;
+            if (authorizationBehavior != null)
+                authorizationPolicy = authorizationBehavior.AuthorizationPolicyType;
+
             foreach (var endpointDispatcher in dispatchRuntime.ChannelDispatcher.Endpoints)
                 endpointDispatcher.DispatchRuntime.MessageInspectors.Add(
                     new ServiceAuthenticationInspector(
                         behavior.ThrowIfNull().AuthenticationHandler,
                         behavior.UsernamePasswordValidatorType,
                         behavior.RequireSecureTransport,
-                        behavior.Source));
+                        behavior.Source,
+                        authorizationPolicy));
         }
 
         public void Validate(ContractDescription contractDescription, ServiceEndpoint endpoint) { }

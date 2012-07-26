@@ -14,6 +14,11 @@ namespace WcfRestContrib.DependencyInjection
             return dependencyResolver.GetInfrastructureService<T>(typeof(T));
         }
 
+        public static T GetOperationService<T>(this IDependencyResolver dependencyResolver, object container, Type type, params object[] args)
+        {
+            return (T)dependencyResolver.GetOperationService(container, type, args);
+        }
+
         public static T GetOperationService<T>(this IDependencyResolver dependencyResolver, object container, Type type)
         {
             return (T)dependencyResolver.GetOperationService(container, type);

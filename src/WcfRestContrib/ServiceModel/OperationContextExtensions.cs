@@ -4,14 +4,16 @@ using System.Security.Principal;
 using System.ServiceModel;
 using System.ServiceModel.Security;
 using System.IdentityModel.Policy;
+using WcfRestContrib.DependencyInjection;
 using WcfRestContrib.IdentityModel.Policy;
 using System.Collections.ObjectModel;
+using WcfRestContrib.ServiceModel.Dispatcher;
 
 namespace WcfRestContrib.ServiceModel
 {
     public static class OperationContextExtensions
     {
-        public static void ReplacePrimaryIdentity(this OperationContext context, IIdentity identity)
+        public static void ReplacePrimaryIdentity(this OperationContext context, IIdentity identity, Type authorizationPolicyType)
         {
             var incomingMessageProperties = context.IncomingMessageProperties;
             if (incomingMessageProperties != null)
@@ -21,14 +23,27 @@ namespace WcfRestContrib.ServiceModel
                     (incomingMessageProperties.Security = new SecurityMessageProperty());
 
                 var policies = security.ServiceSecurityContext.AuthorizationPolicies.ToList();
-                policies.Add(new IdentityAuthorizationPolicy(identity));
+
+                IAuthorizationPolicy policy;
+                if (authorizationPolicyType == null)
+                    policy = new IdentityAuthorizationPolicy(identity);
+                else
+                {
+                    policy = 
+                        DependencyResolver.Current.GetOperationService<IAuthorizationPolicy>(
+                            OperationContainer.GetCurrent(), 
+                            authorizationPolicyType, 
+                            identity);                    
+                    policies.Add(policy);
+                }
+                policies.Add(policy);
 
                 var authorizationContext =
                     AuthorizationContext.CreateDefaultAuthorizationContext(policies);
 
                 security.ServiceSecurityContext = new ServiceSecurityContext(
-                    authorizationContext,
-                    new ReadOnlyCollection<IAuthorizationPolicy>(policies));
+                        authorizationContext,
+                        new ReadOnlyCollection<IAuthorizationPolicy>(policies));
             }
         }
 

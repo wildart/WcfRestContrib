@@ -117,6 +117,7 @@
     <Compile Include="ServiceModel\Configuration\DependencyInjection\BehaviorElement.cs" />
     <Compile Include="ServiceModel\Configuration\ErrorHandler\BehaviorElement.cs" />
     <Compile Include="ServiceModel\Configuration\WebAuthentication\BehaviorElement.cs" />
+    <Compile Include="ServiceModel\Configuration\WebAuthorization\BehaviorElement.cs" />
     <Compile Include="ServiceModel\Configuration\WebDispatchFormatter\BehaviorElement.cs" />
     <Compile Include="ServiceModel\Configuration\WebDispatchFormatter\FormatterElement.cs" />
     <Compile Include="ServiceModel\Configuration\WebDispatchFormatter\FormattersElement.cs" />
@@ -137,6 +138,8 @@
     <Compile Include="ServiceModel\Description\ServiceDescriptionExtensions.cs" />
     <Compile Include="ServiceModel\Description\WebAuthenticationConfigurationAttribute.cs" />
     <Compile Include="ServiceModel\Description\WebAuthenticationConfigurationBehavior.cs" />
+    <Compile Include="ServiceModel\Description\WebAuthorizationConfigurationAttribute.cs" />
+    <Compile Include="ServiceModel\Description\WebAuthorizationConfigurationBehavior.cs" />
     <Compile Include="ServiceModel\Description\WebDispatchFormatterConfigurationAttribute.cs" />
     <Compile Include="ServiceModel\Description\WebDispatchFormatterConfigurationBehavior.cs" />
     <Compile Include="ServiceModel\Description\WebDispatchFormatterAttribute.cs" />
@@ -203,6 +206,7 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

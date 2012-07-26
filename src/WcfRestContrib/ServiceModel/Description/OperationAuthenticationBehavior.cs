@@ -1,4 +1,5 @@
-﻿using System.Configuration;
+﻿using System;
+using System.Configuration;
 using System.ServiceModel.Dispatcher;
 using System.ServiceModel.Description;
 using System.ServiceModel.Channels;
@@ -23,12 +24,22 @@ namespace WcfRestContrib.ServiceModel.Description
                 throw new ConfigurationErrorsException(
                     "OperationAuthenticationConfigurationBehavior not applied to contract or service. This behavior is required to configure operation authentication.");
 
+            var authorizationBehavior =
+                operationDescription.DeclaringContract.FindBehavior
+                    <WebAuthorizationConfigurationBehavior,
+                    WebAuthorizationConfigurationAttribute>(b => b.BaseBehavior);
+
+            Type authorizationPolicy = null;
+            if (authorizationBehavior != null)
+                authorizationPolicy = authorizationBehavior.AuthorizationPolicyType;
+
             dispatchOperation.Invoker = new OperationAuthenticationInvoker(
                 dispatchOperation.Invoker,
                 behavior.ThrowIfNull().AuthenticationHandler,
                 behavior.UsernamePasswordValidatorType,
                 behavior.RequireSecureTransport,
-                behavior.Source);
+                behavior.Source,
+                authorizationPolicy);
         }
 
         public void ApplyClientBehavior(OperationDescription operationDescription, 
