@@ -32,9 +32,12 @@ namespace WcfRestContrib.ServiceModel.Web
                                               behavior.UnhandledErrorMessage : 
                                               "An error has occured processing your request.";
 
-                webException = new WebException(error,
-                    System.Net.HttpStatusCode.InternalServerError, 
-                    unhandledErrorMessage);
+                // Fix for obfuscated SecurityException
+                var statusCode = System.Net.HttpStatusCode.InternalServerError;
+                if (error.Message.Equals("Access is denied."))
+                    statusCode = System.Net.HttpStatusCode.Forbidden;
+
+                webException = new WebException(error, statusCode, unhandledErrorMessage);
             }
 
             webException.UpdateHeaders(WebOperationContext.Current.OutgoingResponse.Headers);
